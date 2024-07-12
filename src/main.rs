@@ -183,7 +183,7 @@ fn read_file_to_string(file_path: &str) -> Result<String, String> {
     let path = Path::new(file_path);
     let mut file = match File::open(&path) {
         Ok(file) => file,
-        Err(err) => return Err(format!("Error al abrir el archivo '{}': {}", file_path, err)),
+        Err(err) => return Err(format!("Error opening file '{}': {}", file_path, err)),
     };
 
     // Creamos un buffer para almacenar el contenido del archivo
@@ -192,6 +192,6 @@ fn read_file_to_string(file_path: &str) -> Result<String, String> {
     // Leemos el contenido del archivo dentro del buffer
     match file.read_to_string(&mut content) {
         Ok(_) => Ok(content),
-        Err(err) => Err(format!("Error al leer el archivo '{}': {}", file_path, err)),
+        Err(err) => Err(format!("Error reading file '{}': {}", file_path, err)),
     }
 }
