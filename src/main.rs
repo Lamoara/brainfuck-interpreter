@@ -1,4 +1,4 @@
-use std::{char, collections::btree_map::Range};
+use std::char;
 
 enum Instruction
 {
@@ -15,23 +15,50 @@ enum Instruction
 
 fn main() 
 {
-    let code: String= String::from(">++++++++++[-<+++++++++++>]<+              Inicialización de las celdas de memoria con 0 y 1 para Fibonacci
-[                                            Inicio del bucle principal
-    [-<+>]                                      Suma los dos números anteriores y avanza el puntero
-    >+                                           Mueve el resultado a la siguiente celda
-    <<<<                                        Vuelve al inicio del bucle principal
-]                                            Fin del bucle principal
->+++++++.                                 Imprime el primer número (0)
->+.                                            Imprime el segundo número (1)
->+.                                            Imprime el tercer número (1)
->+.                                            Imprime el cuarto número (2)
->+.                                            Imprime el quinto número (3)
->+.                                            Imprime el sexto número (5)
->+.                                            Imprime el séptimo número (8)
->+.                                            Imprime el octavo número (13)
->+.                                            Imprime el noveno número (21)
->+.                                            Imprime el décimo número (34)
-");
+    let code: String= String::from(">+++++++++[<+++++++++++>-]<[>[-]>[-]<<[>+>+<<-]>>[<<+>>-]>>>
+[-]<<<+++++++++<[>>>+<<[>+>[-]<<-]>[<+>-]>[<<++++++++++>>>+<
+-]<<-<-]+++++++++>[<->-]>>+>[<[-]<<+>>>-]>[-]+<<[>+>-<<-]<<<
+[>>+>+<<<-]>>>[<<<+>>>-]>[<+>-]<<-[>[-]<[-]]>>+<[>[-]<-]<+++
++++++[<++++++<++++++>>-]>>>[>+>+<<-]>>[<<+>>-]<[<<<<<.>>>>>-
+]<<<<<<.>>[-]>[-]++++[<++++++++>-]<.>++++[<++++++++>-]<++.>+
+++++[<+++++++++>-]<.><+++++..--------.-------.>>[>>+>+<<<-]>
+>>[<<<+>>>-]<[<<<<++++++++++++++.>>>>-]<<<<[-]>++++[<+++++++
++>-]<.>+++++++++[<+++++++++>-]<--.---------.>+++++++[<------
+---->-]<.>++++++[<+++++++++++>-]<.+++..+++++++++++++.>++++++
+++[<---------->-]<--.>+++++++++[<+++++++++>-]<--.-.>++++++++
+[<---------->-]<++.>++++++++[<++++++++++>-]<++++.-----------
+-.---.>+++++++[<---------->-]<+.>++++++++[<+++++++++++>-]<-.
+>++[<----------->-]<.+++++++++++..>+++++++++[<---------->-]<
+-----.---.>>>[>+>+<<-]>>[<<+>>-]<[<<<<<.>>>>>-]<<<<<<.>>>+++
++[<++++++>-]<--.>++++[<++++++++>-]<++.>+++++[<+++++++++>-]<.
+><+++++..--------.-------.>>[>>+>+<<<-]>>>[<<<+>>>-]<[<<<<++
+++++++++++++.>>>>-]<<<<[-]>++++[<++++++++>-]<.>+++++++++[<++
++++++++>-]<--.---------.>+++++++[<---------->-]<.>++++++[<++
++++++++++>-]<.+++..+++++++++++++.>++++++++++[<---------->-]<
+-.---.>+++++++[<++++++++++>-]<++++.+++++++++++++.++++++++++.
+------.>+++++++[<---------->-]<+.>++++++++[<++++++++++>-]<-.
+-.---------.>+++++++[<---------->-]<+.>+++++++[<++++++++++>-
+]<--.+++++++++++.++++++++.---------.>++++++++[<---------->-]
+<++.>+++++[<+++++++++++++>-]<.+++++++++++++.----------.>++++
++++[<---------->-]<++.>++++++++[<++++++++++>-]<.>+++[<----->
+-]<.>+++[<++++++>-]<..>+++++++++[<--------->-]<--.>+++++++[<
+++++++++++>-]<+++.+++++++++++.>++++++++[<----------->-]<++++
+.>+++++[<+++++++++++++>-]<.>+++[<++++++>-]<-.---.++++++.----
+---.----------.>++++++++[<----------->-]<+.---.[-]<<<->[-]>[
+-]<<[>+>+<<-]>>[<<+>>-]>>>[-]<<<+++++++++<[>>>+<<[>+>[-]<<-]
+>[<+>-]>[<<++++++++++>>>+<-]<<-<-]+++++++++>[<->-]>>+>[<[-]<
+<+>>>-]>[-]+<<[>+>-<<-]<<<[>>+>+<<<-]>>>[<<<+>>>-]<>>[<+>-]<
+<-[>[-]<[-]]>>+<[>[-]<-]<++++++++[<++++++<++++++>>-]>>>[>+>+
+<<-]>>[<<+>>-]<[<<<<<.>>>>>-]<<<<<<.>>[-]>[-]++++[<++++++++>
+-]<.>++++[<++++++++>-]<++.>+++++[<+++++++++>-]<.><+++++..---
+-----.-------.>>[>>+>+<<<-]>>>[<<<+>>>-]<[<<<<++++++++++++++
+.>>>>-]<<<<[-]>++++[<++++++++>-]<.>+++++++++[<+++++++++>-]<-
+-.---------.>+++++++[<---------->-]<.>++++++[<+++++++++++>-]
+<.+++..+++++++++++++.>++++++++[<---------->-]<--.>+++++++++[
+<+++++++++>-]<--.-.>++++++++[<---------->-]<++.>++++++++[<++
+++++++++>-]<++++.------------.---.>+++++++[<---------->-]<+.
+>++++++++[<+++++++++++>-]<-.>++[<----------->-]<.+++++++++++
+..>+++++++++[<---------->-]<-----.---.+++.---.[-]<<<]");
     
     let instructions: Vec<Instruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Error reading file: {err}")});
 
@@ -46,13 +73,11 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
 {
     let mut instructions: Vec<Instruction> = Vec::new();
 
-
-    let iter = code.chars();
     let mut dir_stack: Vec<usize> = Vec::new();
     let mut last_char: char = code.chars().next().unwrap();
     let mut acumulator: usize = 0;
 
-    for char in iter
+    for char in code.chars()
     {
         if last_char != char
         {
@@ -61,24 +86,28 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
                 '-' => instructions.push(Instruction::Subtract(acumulator as u8)),
                 '>' => instructions.push(Instruction::MoveRight(acumulator)),
                 '<' => instructions.push(Instruction::MoveLeft(acumulator)),
-                '[' => {
-                    dir_stack.push(instructions.len()); 
-                    instructions.push(Instruction::Jump);
-                },
-                ']' => {
-                    match dir_stack.pop() {
-                        Some(dir) => {
-                            instructions[dir] = Instruction::IfJump(instructions.len());
-                            instructions.push(Instruction::IfNotJump(dir));
-                        },
-                        None => return Err(String::from("Syntax error: Unopened loop"))
-                    }
-                },
-                '.' => instructions.push(Instruction::Print),
-                ',' => instructions.push(Instruction::Read),
                 _ => ()// return Err(format!("Syntax error: mismatched character '{}'", last_char))
             }
             acumulator = 0;
+
+        }
+        match char {
+            '[' => {
+                dir_stack.push(instructions.len()); 
+                instructions.push(Instruction::Jump);
+            },
+            ']' => {
+                match dir_stack.pop() {
+                    Some(dir) => {
+                        instructions[dir] = Instruction::IfJump(instructions.len());
+                        instructions.push(Instruction::IfNotJump(dir));
+                    },
+                    None => return Err(String::from("Syntax error: Unopened loop"))
+                }
+            },
+            '.' => instructions.push(Instruction::Print),
+            ',' => instructions.push(Instruction::Read),
+            _ => ()
         }
         acumulator += 1;
         last_char = char;
@@ -103,8 +132,8 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 
         match instructions[current_instruction] 
         {
-            Instruction::Add(amount) => mem[current_index] = ((mem[current_index] + amount) as i32 % 256) as u8,
-            Instruction::Subtract(amount) => mem[current_index] = ((mem[current_index] - amount)as i32 % 256) as u8,
+            Instruction::Add(amount) => mem[current_index] = (mem[current_index] + amount) % 255,
+            Instruction::Subtract(amount) => mem[current_index] = ((mem[current_index] as i16 - amount as i16) % 255) as u8,
             Instruction::MoveRight(amount) => current_index += amount,
             Instruction::MoveLeft(amount) => {
                 if amount > current_index
