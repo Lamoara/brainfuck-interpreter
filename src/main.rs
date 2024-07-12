@@ -34,6 +34,7 @@ fn main()
     
 }
 
+
 fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
 {
     let mut instructions: Vec<Instruction> = Vec::new();
@@ -80,6 +81,7 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
 
     Ok(instructions)
 }
+
 
 fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 {
@@ -136,6 +138,7 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 
 }
 
+
 #[allow(dead_code)]
 fn print_instructions(instructions: &Vec<Instruction>)
 {
@@ -144,6 +147,7 @@ fn print_instructions(instructions: &Vec<Instruction>)
         print_instruction(instruction)
     }
 }
+
 
 fn print_instruction(instruction: &Instruction)
 {
@@ -159,6 +163,7 @@ fn print_instruction(instruction: &Instruction)
         Instruction::Jump => println!("Jump"),
     }
 }
+
 
 fn read_file_to_string(file_path: &str) -> Result<String, String> {
     // Intentamos abrir el archivo en modo lectura
