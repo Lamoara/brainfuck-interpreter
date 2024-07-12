@@ -84,49 +84,45 @@ fn read_to_format(code: String) -> Result<Vec<BFInstruction>, String>
 
 fn execute(instructions: Vec<BFInstruction>) -> Result<(), String>
 {
-    let mut mem: Vec<u8> = Vec::new();
+    const MEM_SIZE: usize = 30000;
+    let mut mem: [u8; MEM_SIZE] = [0; MEM_SIZE];
     let mut current_index: usize = 0;
     let mut current_instruction: usize = 0;
 
     while current_instruction < instructions.len()
     {
-        if mem.len() <= current_index{
-            let additional_size = current_index - mem.len() + 1;
-            mem.resize(mem.len() + additional_size, 0);
-        }
-        //print_instruction(&instructions[current_instruction]);
-        //println!("Len: {}, Index: {}", mem.len(), current_index);
-
         match instructions[current_instruction] 
         {
             BFInstruction::Add(amount) => mem[current_index] = mem[current_index].wrapping_add(amount),
             BFInstruction::Subtract(amount) => mem[current_index] = mem[current_index].wrapping_sub(amount),
-            BFInstruction::MoveRight(amount) => current_index += amount,
-            BFInstruction::MoveLeft(amount) => {
-                if amount > current_index{
-                    return Err(format!("Negative indexing found"));
+            BFInstruction::MoveRight(amount) => {
+                current_index += amount;
+                if current_index >= MEM_SIZE {
+                    return Err(String::from("Runtime error: Memory overflow"));
                 }
-                else{
-                    current_index -= amount
+            },
+            BFInstruction::MoveLeft(amount) => {
+                if amount > current_index {
+                    return Err(String::from("Runtime error: Negative indexing found"));
+                } else {
+                    current_index -= amount;
                 }
             },
             BFInstruction::IfJump(new_index) => {
-                if mem[current_index] == 0{
-                    current_instruction = new_index
+                if mem[current_index] == 0 {
+                    current_instruction = new_index;
                 }
             },
             BFInstruction::IfNotJump(new_index) => {
-                if mem[current_index] != 0{
-                    current_instruction = new_index
+                if mem[current_index] != 0 {
+                    current_instruction = new_index;
                 }
             },
-            BFInstruction::Print => print!("{}", char::from_u32(mem[current_index] as u32).unwrap()), //println!("{:?}", mem),
+            BFInstruction::Print => print!("{}", char::from_u32(mem[current_index] as u32).unwrap()),
             BFInstruction::Read => {
                 io::stdout().flush().unwrap();
                 let mut input = String::new();
-
                 io::stdin().read_line(&mut input).expect("Runtime error: Error reading input");
-
                 if let Some(character) = input.chars().next() {
                     mem[current_index] = character as u8;
                 } else {
@@ -135,12 +131,12 @@ fn execute(instructions: Vec<BFInstruction>) -> Result<(), String>
             },
             BFInstruction::Jump => return Err(String::from("Runtime error: Unfinished loop")),
         }
-        current_instruction += 1
+        current_instruction += 1;
     }
     
     Ok(())
-
 }
+
 
 
 #[allow(dead_code)]
