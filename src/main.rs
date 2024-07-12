@@ -166,17 +166,14 @@ fn print_instruction(instruction: &BFInstruction)
 
 
 fn read_file_to_string(file_path: &str) -> Result<String, String> {
-    // Intentamos abrir el archivo en modo lectura
     let path = Path::new(file_path);
     let mut file = match File::open(&path) {
         Ok(file) => file,
         Err(err) => return Err(format!("[!] Error opening file '{}': {}", file_path, err)),
     };
 
-    // Creamos un buffer para almacenar el contenido del archivo
     let mut content = String::new();
     
-    // Leemos el contenido del archivo dentro del buffer
     match file.read_to_string(&mut content) {
         Ok(_) => Ok(content),
         Err(err) => Err(format!("[!] Error reading file '{}': {}", file_path, err)),
