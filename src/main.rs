@@ -1,4 +1,4 @@
-use std::{char, fs::File, io::Read, path::Path, time::Instant};
+use std::{char, env, fmt::format, fs::File, io::{self, Read, Write}, path::Path, time::Instant};
 
 enum Instruction
 {
@@ -16,8 +16,10 @@ enum Instruction
 
 fn main() 
 {
-    
-    let file_path = "C:/Users/jorge/OneDrive/Escritorio/Brainfuck.txt";
+    let args: Vec<String> = env::args().collect();
+
+
+    let file_path = &args[1][..];
     let code = read_file_to_string(file_path).unwrap();
     
     let start = Instant::now();
@@ -128,7 +130,18 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
                 }
             },
             Instruction::Print => print!("{}", char::from_u32(mem[current_index] as u32).unwrap()), //println!("{:?}", mem),
-            Instruction::Read => mem[current_index] = 2,
+            Instruction::Read => {
+                io::stdout().flush().unwrap();
+                let mut input = String::new();
+
+                io::stdin().read_line(&mut input).expect("Runtime error: Error reading input");
+
+                if let Some(character) = input.chars().next() {
+                    mem[current_index] = character as u8;
+                } else {
+                    return Err(String::from("Runtime error: Missed input"));
+                }
+            },
             Instruction::Jump => return Err(String::from("Runtime error: Unfinished loop")),
         }
         current_instruction += 1
