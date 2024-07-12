@@ -1,4 +1,4 @@
-use std::char;
+use std::{char, collections::btree_map::Range};
 
 enum Instruction
 {
@@ -15,12 +15,27 @@ enum Instruction
 
 fn main() 
 {
-    let code: String= String::from("++++[>+++++<-]>[<+++++>-]+<+[>[>+>+<<-]++>>[<<+>>-]>>>[-]++>[-]+>>>+[[-]++++++>>>]<<<[[<++++++++<++>>-]+<.<[>----<-]<]<<[>>>>>[>>>[-]+++++++++<[>-<-]+++++++++>[-[<->-]+[<<<]]<[>+<-]>]<<-]<<-]");
-    let code = code.replace("\n", "").replace(" ", "");
+    let code: String= String::from(">++++++++++[-<+++++++++++>]<+              Inicialización de las celdas de memoria con 0 y 1 para Fibonacci
+[                                            Inicio del bucle principal
+    [-<+>]                                      Suma los dos números anteriores y avanza el puntero
+    >+                                           Mueve el resultado a la siguiente celda
+    <<<<                                        Vuelve al inicio del bucle principal
+]                                            Fin del bucle principal
+>+++++++.                                 Imprime el primer número (0)
+>+.                                            Imprime el segundo número (1)
+>+.                                            Imprime el tercer número (1)
+>+.                                            Imprime el cuarto número (2)
+>+.                                            Imprime el quinto número (3)
+>+.                                            Imprime el sexto número (5)
+>+.                                            Imprime el séptimo número (8)
+>+.                                            Imprime el octavo número (13)
+>+.                                            Imprime el noveno número (21)
+>+.                                            Imprime el décimo número (34)
+");
     
-    let instructions: Vec<Instruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Erorr reading file: {err}")});
+    let instructions: Vec<Instruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Error reading file: {err}")});
 
-    print_instructions(&instructions);
+    //print_instructions(&instructions);
 
     execute(instructions).unwrap();
 
@@ -39,7 +54,6 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
 
     for char in iter
     {
-        println!("{:?}", dir_stack);
         if last_char != char
         {
             match last_char {
@@ -49,7 +63,7 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
                 '<' => instructions.push(Instruction::MoveLeft(acumulator)),
                 '[' => {
                     dir_stack.push(instructions.len()); 
-                    instructions.push(Instruction::Jump)
+                    instructions.push(Instruction::Jump);
                 },
                 ']' => {
                     match dir_stack.pop() {
@@ -62,17 +76,12 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
                 },
                 '.' => instructions.push(Instruction::Print),
                 ',' => instructions.push(Instruction::Read),
-                _ => return Err(format!("Syntax error: mismatched character '{}'", last_char))
+                _ => ()// return Err(format!("Syntax error: mismatched character '{}'", last_char))
             }
             acumulator = 0;
         }
-
+        acumulator += 1;
         last_char = char;
-        match char
-        {
-            '+'|'-'|'>'|'<' => acumulator += 1,
-            _ => ()
-        }
     }
 
     Ok(instructions)
@@ -80,7 +89,7 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
 
 fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 {
-    let mut mem: Vec<i32> = Vec::new();
+    let mut mem: Vec<u8> = Vec::new();
     let mut current_index: usize = 0;
     let mut current_instruction: usize = 0;
 
@@ -90,16 +99,25 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
             mem.push(0)
         }
         //print_instruction(&instructions[current_instruction]);
+        //println!("Len: {}, Index: {}", mem.len(), current_index);
 
-        match instructions[current_instruction] {
-            Instruction::Add(amount) => mem[current_index] = (mem[current_index] + amount as i32) % 256,
-            Instruction::Subtract(amount) => mem[current_index] = (mem[current_index] - amount as i32) % 256,
+        match instructions[current_instruction] 
+        {
+            Instruction::Add(amount) => mem[current_index] = ((mem[current_index] + amount) as i32 % 256) as u8,
+            Instruction::Subtract(amount) => mem[current_index] = ((mem[current_index] - amount)as i32 % 256) as u8,
             Instruction::MoveRight(amount) => current_index += amount,
             Instruction::MoveLeft(amount) => {
-                if amount > current_index{
-                    return Err(String::from("Runtime error: Negative indexing"));
+                if amount > current_index
+                {
+                    for _ in 0..(amount - current_index) 
+                    {
+                        mem.insert(0, 0);
+                    }
+                    current_index = 0
                 }
-                current_index -= amount
+                else{
+                    current_index -= amount
+                }
             },
             Instruction::IfJump(new_index) => {
                 if mem[current_index] == 0{
@@ -112,7 +130,7 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
                 }
             },
             Instruction::Print => print!("{}", char::from_u32(mem[current_index] as u32).unwrap()), //println!("{:?}", mem),
-            Instruction::Read => todo!(),
+            Instruction::Read => mem[current_index] = 2,
             Instruction::Jump => return Err(String::from("Runtime error: Unfinished loop")),
         }
         current_instruction += 1
