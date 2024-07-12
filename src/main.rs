@@ -19,12 +19,12 @@ fn main()
     let args: Vec<String> = env::args().collect();
 
     let file_path = &args[1][..];
-    let code = read_file_to_string(file_path).unwrap();
+    let code = read_file_to_string(file_path).unwrap_or_else(|err| {panic!("{err}")});
     
     let start = Instant::now();
-    let instructions: Vec<BFInstruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Error parsing file: {err}")});
+    let instructions: Vec<BFInstruction> = read_to_format(code).unwrap_or_else(|err| {panic!("[!] Error parsing file: {err}")});
 
-    execute(instructions).unwrap_or_else(|err| {panic!("{err}")});
+    execute(instructions).unwrap_or_else(|err| {panic!("[!] {err}")});
 
     let duration = start.elapsed();
 
@@ -170,7 +170,7 @@ fn read_file_to_string(file_path: &str) -> Result<String, String> {
     let path = Path::new(file_path);
     let mut file = match File::open(&path) {
         Ok(file) => file,
-        Err(err) => return Err(format!("Error opening file '{}': {}", file_path, err)),
+        Err(err) => return Err(format!("[!] Error opening file '{}': {}", file_path, err)),
     };
 
     // Creamos un buffer para almacenar el contenido del archivo
@@ -179,6 +179,6 @@ fn read_file_to_string(file_path: &str) -> Result<String, String> {
     // Leemos el contenido del archivo dentro del buffer
     match file.read_to_string(&mut content) {
         Ok(_) => Ok(content),
-        Err(err) => Err(format!("Error reading file '{}': {}", file_path, err)),
+        Err(err) => Err(format!("[!] Error reading file '{}': {}", file_path, err)),
     }
 }
