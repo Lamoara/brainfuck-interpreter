@@ -1,4 +1,4 @@
-use std::char;
+use std::{char, fs::File, io::Read, path::Path, time::Instant};
 
 enum Instruction
 {
@@ -13,25 +13,24 @@ enum Instruction
     Jump,
 }
 
+
 fn main() 
 {
-    let code: String= String::from(">  +++++ +++++ +++++ (15 digits)
-
-[<+>>>>>>>>++++++++++<<<<<<<-]>+++++[<+++++++++>-]+>>>>>>+[<<+++[>>[-<]<[>]<-]>>
-[>+>]<[<]>]>[[->>>>+<<<<]>>>+++>-]<[<<<<]<<<<<<<<+[->>>>>>>>>>>>[<+[->>>>+<<<<]>
->>>>]<<<<[>>>>>[<<<<+>>>>-]<<<<<-[<<++++++++++>>-]>>>[<<[<+<<+>>>-]<[>+<-]<++<<+
->>>>>>-]<<[-]<<-<[->>+<-[>>>]>[[<+>-]>+>>]<<<<<]>[-]>+<<<-[>>+<<-]<]<<<<+>>>>>>>
->[-]>[<<<+>>>-]<<++++++++++<[->>+<-[>>>]>[[<+>-]>+>>]<<<<<]>[-]>+>[<<+<+>>>-]<<<
-<+<+>>[-[-[-[-[-[-[-[-[-<->[-<+<->>]]]]]]]]]]<[+++++[<<<++++++++<++++++++>>>>-]<
-<<<+<->>>>[>+<<<+++++++++<->>>-]<<<<<[>>+<<-]+<[->-<]>[>>.<<<<[+.[-]]>>-]>[>>.<<
--]>[-]>[-]>>>[>>[<<<<<<<<+>>>>>>>>-]<<-]]>>[-]<<<[-]<<<<<<<<]++++++++++.");
     
+    let file_path = "C:/Users/jorge/OneDrive/Escritorio/Brainfuck.txt";
+    let code = read_file_to_string(file_path).unwrap();
+    
+    let start = Instant::now();
     let instructions: Vec<Instruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Error reading file: {err}")});
 
     //print_instructions(&instructions);
 
     execute(instructions).unwrap();
 
+    let duration = start.elapsed();
+
+    println!();
+    println!("Time elapsed is: {:?}", duration);
     
 }
 
@@ -52,7 +51,7 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
                 '-' => instructions.push(Instruction::Subtract(acumulator as u8)),
                 '>' => instructions.push(Instruction::MoveRight(acumulator)),
                 '<' => instructions.push(Instruction::MoveLeft(acumulator)),
-                _ => ()// return Err(format!("Syntax error: mismatched character '{}'", last_char))
+                _ => ()
             }
             acumulator = 0;
 
@@ -90,8 +89,9 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 
     while current_instruction < instructions.len()
     {
-        while mem.len() <= current_index {
-            mem.push(0)
+        if mem.len() <= current_index{
+            let additional_size = current_index - mem.len() + 1;
+            mem.resize(mem.len() + additional_size, 0);
         }
         //print_instruction(&instructions[current_instruction]);
         //println!("Len: {}, Index: {}", mem.len(), current_index);
@@ -158,4 +158,20 @@ fn print_instruction(instruction: &Instruction)
     }
 }
 
+fn read_file_to_string(file_path: &str) -> Result<String, String> {
+    // Intentamos abrir el archivo en modo lectura
+    let path = Path::new(file_path);
+    let mut file = match File::open(&path) {
+        Ok(file) => file,
+        Err(err) => return Err(format!("Error al abrir el archivo '{}': {}", file_path, err)),
+    };
 
+    // Creamos un buffer para almacenar el contenido del archivo
+    let mut content = String::new();
+    
+    // Leemos el contenido del archivo dentro del buffer
+    match file.read_to_string(&mut content) {
+        Ok(_) => Ok(content),
+        Err(err) => Err(format!("Error al leer el archivo '{}': {}", file_path, err)),
+    }
+}
