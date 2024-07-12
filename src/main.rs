@@ -1,6 +1,6 @@
-use std::{char, env, fmt::format, fs::File, io::{self, Read, Write}, path::Path, time::Instant};
+use std::{char, env, fs::File, io::{self, Read, Write}, path::Path, time::Instant};
 
-enum Instruction
+enum BFInstruction
 {
     Add(u8),
     Subtract(u8),
@@ -18,16 +18,13 @@ fn main()
 {
     let args: Vec<String> = env::args().collect();
 
-
     let file_path = &args[1][..];
     let code = read_file_to_string(file_path).unwrap();
     
     let start = Instant::now();
-    let instructions: Vec<Instruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Error reading file: {err}")});
+    let instructions: Vec<BFInstruction> = read_to_format(code).unwrap_or_else(|err| {panic!("Error parsing file: {err}")});
 
-    //print_instructions(&instructions);
-
-    execute(instructions).unwrap();
+    execute(instructions).unwrap_or_else(|err| {panic!("{err}")});
 
     let duration = start.elapsed();
 
@@ -37,9 +34,9 @@ fn main()
 }
 
 
-fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
+fn read_to_format(code: String) -> Result<Vec<BFInstruction>, String>
 {
-    let mut instructions: Vec<Instruction> = Vec::new();
+    let mut instructions: Vec<BFInstruction> = Vec::new();
 
     let mut dir_stack: Vec<usize> = Vec::new();
     let mut last_char: char = code.chars().next().unwrap();
@@ -50,10 +47,10 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
         if last_char != char
         {
             match last_char {
-                '+' => instructions.push(Instruction::Add(acumulator as u8)),
-                '-' => instructions.push(Instruction::Subtract(acumulator as u8)),
-                '>' => instructions.push(Instruction::MoveRight(acumulator)),
-                '<' => instructions.push(Instruction::MoveLeft(acumulator)),
+                '+' => instructions.push(BFInstruction::Add(acumulator as u8)),
+                '-' => instructions.push(BFInstruction::Subtract(acumulator as u8)),
+                '>' => instructions.push(BFInstruction::MoveRight(acumulator)),
+                '<' => instructions.push(BFInstruction::MoveLeft(acumulator)),
                 _ => ()
             }
             acumulator = 0;
@@ -62,19 +59,19 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
         match char {
             '[' => {
                 dir_stack.push(instructions.len()); 
-                instructions.push(Instruction::Jump);
+                instructions.push(BFInstruction::Jump);
             },
             ']' => {
                 match dir_stack.pop() {
                     Some(dir) => {
-                        instructions[dir] = Instruction::IfJump(instructions.len());
-                        instructions.push(Instruction::IfNotJump(dir));
+                        instructions[dir] = BFInstruction::IfJump(instructions.len());
+                        instructions.push(BFInstruction::IfNotJump(dir));
                     },
                     None => return Err(String::from("Syntax error: Unopened loop"))
                 }
             },
-            '.' => instructions.push(Instruction::Print),
-            ',' => instructions.push(Instruction::Read),
+            '.' => instructions.push(BFInstruction::Print),
+            ',' => instructions.push(BFInstruction::Read),
             _ => ()
         }
         acumulator += 1;
@@ -85,7 +82,7 @@ fn read_to_format(code: String) -> Result<Vec<Instruction>, String>
 }
 
 
-fn execute(instructions: Vec<Instruction>) -> Result<(), String>
+fn execute(instructions: Vec<BFInstruction>) -> Result<(), String>
 {
     let mut mem: Vec<u8> = Vec::new();
     let mut current_index: usize = 0;
@@ -102,35 +99,29 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 
         match instructions[current_instruction] 
         {
-            Instruction::Add(amount) => mem[current_index] = mem[current_index].wrapping_add(amount),
-            Instruction::Subtract(amount) => mem[current_index] = mem[current_index].wrapping_sub(amount),
-            Instruction::MoveRight(amount) => current_index += amount,
-            Instruction::MoveLeft(amount) => {
-                if amount > current_index
-                {
+            BFInstruction::Add(amount) => mem[current_index] = mem[current_index].wrapping_add(amount),
+            BFInstruction::Subtract(amount) => mem[current_index] = mem[current_index].wrapping_sub(amount),
+            BFInstruction::MoveRight(amount) => current_index += amount,
+            BFInstruction::MoveLeft(amount) => {
+                if amount > current_index{
                     return Err(format!("Negative indexing found"));
-                    // for _ in 0..(amount - current_index) 
-                    // {
-                    //     mem.insert(0, 0);
-                    // }
-                    // current_index = 0
                 }
                 else{
                     current_index -= amount
                 }
             },
-            Instruction::IfJump(new_index) => {
+            BFInstruction::IfJump(new_index) => {
                 if mem[current_index] == 0{
                     current_instruction = new_index
                 }
             },
-            Instruction::IfNotJump(new_index) => {
+            BFInstruction::IfNotJump(new_index) => {
                 if mem[current_index] != 0{
                     current_instruction = new_index
                 }
             },
-            Instruction::Print => print!("{}", char::from_u32(mem[current_index] as u32).unwrap()), //println!("{:?}", mem),
-            Instruction::Read => {
+            BFInstruction::Print => print!("{}", char::from_u32(mem[current_index] as u32).unwrap()), //println!("{:?}", mem),
+            BFInstruction::Read => {
                 io::stdout().flush().unwrap();
                 let mut input = String::new();
 
@@ -142,7 +133,7 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
                     return Err(String::from("Runtime error: Missed input"));
                 }
             },
-            Instruction::Jump => return Err(String::from("Runtime error: Unfinished loop")),
+            BFInstruction::Jump => return Err(String::from("Runtime error: Unfinished loop")),
         }
         current_instruction += 1
     }
@@ -153,7 +144,7 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
 
 
 #[allow(dead_code)]
-fn print_instructions(instructions: &Vec<Instruction>)
+fn print_instructions(instructions: &Vec<BFInstruction>)
 {
     for instruction in instructions.iter()
     {
@@ -162,18 +153,18 @@ fn print_instructions(instructions: &Vec<Instruction>)
 }
 
 
-fn print_instruction(instruction: &Instruction)
+fn print_instruction(instruction: &BFInstruction)
 {
     match instruction {
-        Instruction::Add(amount) => println!("Add({})", amount),
-        Instruction::Subtract(amount) => println!("Subtract({})", amount),
-        Instruction::MoveLeft(amount) => println!("MoveLeft({})", amount),
-        Instruction::MoveRight(amount) => println!("MoveRight({})", amount),
-        Instruction::IfJump(amount) => println!("IfJump({})", amount),
-        Instruction::IfNotJump(amount) => println!("IfNotJump({})", amount),
-        Instruction::Print => println!("Print"),
-        Instruction::Read => println!("Read"),
-        Instruction::Jump => println!("Jump"),
+        BFInstruction::Add(amount) => println!("Add({})", amount),
+        BFInstruction::Subtract(amount) => println!("Subtract({})", amount),
+        BFInstruction::MoveLeft(amount) => println!("MoveLeft({})", amount),
+        BFInstruction::MoveRight(amount) => println!("MoveRight({})", amount),
+        BFInstruction::IfJump(amount) => println!("IfJump({})", amount),
+        BFInstruction::IfNotJump(amount) => println!("IfNotJump({})", amount),
+        BFInstruction::Print => println!("Print"),
+        BFInstruction::Read => println!("Read"),
+        BFInstruction::Jump => println!("Jump"),
     }
 }
 
