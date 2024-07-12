@@ -104,11 +104,12 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
             Instruction::MoveLeft(amount) => {
                 if amount > current_index
                 {
-                    for _ in 0..(amount - current_index) 
-                    {
-                        mem.insert(0, 0);
-                    }
-                    current_index = 0
+                    return Err(format!("Negative indexing found"));
+                    // for _ in 0..(amount - current_index) 
+                    // {
+                    //     mem.insert(0, 0);
+                    // }
+                    // current_index = 0
                 }
                 else{
                     current_index -= amount
@@ -130,8 +131,9 @@ fn execute(instructions: Vec<Instruction>) -> Result<(), String>
         }
         current_instruction += 1
     }
-
+    
     Ok(())
+
 }
 
 #[allow(dead_code)]
